@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+		
+	<!-- base-package를 어디서부터 스캔할지 설정 -->
+	<context:component-scan base-package="com.portfolio.biz"></context:component-scan>
+	
+	<!-- @Controller에 요청을 보내기 위해 필요한 HandlerMapping과 HandlerAdapter를 Bean으로 등록한다.
+		Bean을 생성하기 위해 xml 파일에 context:component-scan을 명시하면 이 태그를 포함하지 않아도 MVC 어플리케이션을 작동한다. -->
+	<mvc:annotation-driven></mvc:annotation-driven>
+	
+	<!-- 데이터베이스를 연결하기 위한 속성 설정 -->
+	<context:property-placeholder location="classpath:config/database.properties"/>
+	
+	<!-- 데이터 소스 -->
+		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+			<property name="driverClassName" value="${jdbc.driverClassName}"/>
+			<property name="url" value="${jdbc.url}"/>
+			<property name="username" value="${jdbc.username}"/>
+			<property name="password" value="${jdbc.password}"/>
+		</bean>
+		
+		<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource"></property>
+			<property name="configLocation" value="classpath:sql-map-config.xml"></property>
+		</bean>
+		
+		<bean class="org.mybatis.spring.SqlSessionTemplate">
+			<constructor-arg ref="sessionFactory"></constructor-arg>
+		</bean>
+		
+		<!-- oauth2 login -->
+		<!-- naver -->
+		<bean id="naverClientID" class="java.lang.String">
+			<constructor-arg value="pegJugBvf2O9rjnlHHaF"/>
+		</bean>
+		
+		<bean id="naverClientSecret" class="java.lang.String">
+			<constructor-arg value="597fPwC9zE"/>
+		</bean>
+		
+		<bean id="naverRedirectUrl" class="java.lang.String">
+			<constructor-arg value="http://localhost:8181/biz/auth/naver/callback"/>
+		</bean>
+		
+		<bean id="naverSns" class="com.portfolio.biz.auth.SnsValue">
+			<constructor-arg value="naver"/>
+			<constructor-arg ref="naverClientID"/>
+			<constructor-arg ref="naverClientSecret"/>
+			<constructor-arg ref="naverRedirectUrl"/>
+		</bean>
+		
+		<!-- google -->
+		<bean id="googleClientID" class="java.lang.String">
+			<constructor-arg value="22600527866-5nsfjlh3u4o2tv2qs9r6l8hddua781qi.apps.googleusercontent.com"/>
+		</bean>
+		
+		<bean id="googleClientSecret" class="java.lang.String">
+			<constructor-arg value="TORc-EFj7dCJlSOyjVaTNbiB"/>
+		</bean>
+		
+		<bean id="googleRedirectUrl" class="java.lang.String">
+			<constructor-arg value="http://localhost:8181/biz/auth/google/callback"/>
+			<!--  -->
+		</bean>
+		
+		<bean id="googleSns" class="com.portfolio.biz.auth.SnsValue">
+			<constructor-arg value="google"/>
+			<constructor-arg ref="googleClientID"/>
+			<constructor-arg ref="googleClientSecret"/>
+			<constructor-arg ref="googleRedirectUrl"/>
+		</bean>
+		
+		<bean id="googleConnectionFactory" class="org.springframework.social.google.connect.GoogleConnectionFactory">
+			<constructor-arg ref="googleClientID"/>
+			<constructor-arg ref="googleClientSecret"/>
+		</bean>
+		
+		<bean id="googleOAuth2Parameters" class="org.springframework.social.oauth2.OAuth2Parameters">
+			<property name="scope" value="https://www.googleapis.com/auth/userinfo.email"/>
+			<property name="redirectUri" ref="googleRedirectUrl"></property>
+		</bean>
+</beans>

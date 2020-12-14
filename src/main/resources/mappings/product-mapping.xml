@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductDAO">
+	<select id="maxProductNum" resultType="int">
+		select NVL2(max(prodnum), max(prodnum) + 1, 1) from product
+	</select>
+	
+	<insert id="enrollProduct">
+		insert into product(prodnum, name, kind, price1,
+		price2, price3, content, image)
+		values(#{prodnum}, #{name},
+		#{kind}, #{price1}, #{price2}, #{price3}, #{content}, #{image})
+	</insert>
+	
+	<insert id="insertProductImage">
+		insert into product_images(prodnum, name, detail_image, prodimagenum)
+		values(#{prodnum}, #{name}, #{detail_image}, prod_image_seq.nextval)
+	</insert>
+
+	<select id="getProductList" parameterType="String"
+		resultType="product">
+		select * from product
+		where kind like '%' || #{kind} || '%'
+		order by regdate desc
+	</select>
+
+	<select id="getProductListPaging" parameterType="hashMap"
+		resultType="product">
+	<![CDATA[
+		select rn, prodnum, name, kind, price1, price2, price3, content, image, useyn, regdate, viewnum
+    from (select row_number() over (order by regdate desc) rn, prodnum, name, kind, price1, price2, price3, content, image, useyn, regdate, viewnum
+            from product
+            where kind like '%' || #{kind} || '%'
+            order by regdate desc)
+            where rn > ((#{criteria.pageNum}-1) * #{criteria.numPerPage}) and rn <= #{criteria.pageNum} * #{criteria.numPerPage}
+            ]]>
+	</select>
+	
+	<select id="getProductCategoryListPaging" parameterType="hashMap"
+		resultType="product">
+	<![CDATA[
+		select rn, prodnum, name, kind, price1, price2, price3, content, image, useyn, regdate, viewnum
+    from (select row_number() over (order by regdate desc) rn, prodnum, name, kind, price1, price2, price3, content, image, useyn, regdate, viewnum
+            from product
+            where kind like '%' || #{kind} || '%' and useyn = 'y'
+            order by regdate desc)
+            where rn > ((#{criteria.pageNum}-1) * #{criteria.numPerPage}) and rn <= #{criteria.pageNum} * #{criteria.numPerPage}
+            ]]>
+	</select>
+	
+	<select id="getProductCategoryList" parameterType="String" resultType="product">
+		select * from product
+		where kind like '%' || #{kind} || '%' and useyn = 'y'
+		order by regdate desc
+	</select>
+
+	<select id="getProductByProdnum" parameterType="int"
+		resultType="product">
+		select * from product where prodnum=#{prodnum}
+	</select>
+	
+	<select id="detailProductImage" parameterType="int" resultType="product">
+		select * from product_images
+		where prodnum = #{prodnum}
+	</select>
+
+	<update id="updateProduct">
+		update product
+		set name=#{name}, kind=#{kind}, price1=#{price1}, price2=#{price2},
+		price3=#{price3}, content=#{content}, useyn=#{useyn}
+		where
+		prodnum=#{prodnum}
+	</update>
+
+	<update id="updateViewnum">
+		update product
+		set viewnum = #{viewnum}
+		where
+		prodnum=#{prodnum}
+	</update>
+	
+	<select id="countProductList" parameterType="String" resultType="int">
+		select count(*) from product where kind like '%' || #{kind} || '%'
+	</select>
+	
+	<select id="countCategoryProductList" parameterType="String" resultType="int">
+		select count(*) from product
+		where kind like '%' || #{kind} || '%' and useyn = 'y'
+	</select>
+	
+	<select id="bestProductList" resultType="product">
+		<![CDATA[
+			select rn, prodnum, name, kind, image, useyn, viewnum
+    			from (select row_number() over (order by viewnum desc) rn, prodnum, name, kind, image, useyn, viewnum
+            		from product
+            		where useyn = 'y')
+    		where rn < 4
+    		]]>
+	</select>
+</mapper>

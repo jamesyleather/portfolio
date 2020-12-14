@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NoticeDAO">
+	<select id="selectMaxNoticeNum" resultType="int">
+		select
+		NVL2(max(noticenum), max(noticenum) + 1, 1) from notice
+	</select>
+
+	<select id="noticeTotalCount" resultType="int">
+		select count(*) from
+		notice
+	</select>
+
+	<insert id="writeNotice">
+		insert into notice(noticenum, title, content, id,
+		kind)
+		values(#{noticenum}, #{title}, #{content}, #{id}, #{kind})
+	</insert>
+
+	<insert id="insertNoticeImage">
+		insert into notice_images(noticeimagenum, noticenum,
+		id, image)
+		values(notice_image_seq.nextval, #{noticenum}, #{id},
+		#{image})
+	</insert>
+
+	<select id="getNoticeList" parameterType="hashMap" resultType="notice">
+		<![CDATA[
+		select rn, noticenum, title, content, id, indate, kind
+    from (select row_number() over (order by indate desc) rn, noticenum, title, content, id, indate, kind
+        from notice)
+    where rn > ((#{criteria.pageNum} - 1) * #{criteria.numPerPage}) and rn <= #{criteria.pageNum} * #{criteria.numPerPage}
+    ]]>
+	</select>
+
+	<select id="getNoticeDetail" parameterType="int" resultType="notice">
+		select * from notice_view
+		where noticenum = #{noticenum}
+	</select>
+	
+	<insert id="writeComment">
+		insert into notice_comment(commentnum, noticenum, content, id)
+		values (notice_comment_seq.nextval, #{noticenum}, #{content}, #{id})
+	</insert>
+	
+	<select id="commentList" parameterType="int"  resultType="notice">
+		select * from notice_comment 
+		where noticenum = #{noticenum}
+		order by indate desc
+	</select>
+</mapper>

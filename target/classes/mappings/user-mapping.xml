@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserDAO">
+	<insert id="joinUser">
+		insert into users(id, pwd, name, email, zip_code, address, phone)
+		values(#{id}, #{pwd}, #{name}, #{email}, #{zip_code}, #{address}, #{phone})
+	</insert>
+	
+	<!-- 로그인시 아이디와 비밀번호 확인 -->
+	<select id="loginUser" resultType="user">
+		select * from users where id=#{id} and pwd=#{pwd}
+	</select>
+	
+	<select id="snsLoginUser" resultType="user">
+		select * from users where id=#{id} and email=#{email}
+	</select>
+	
+	<select id="idCheck" parameterType="String" resultType="user">
+		select * from users where id=#{id}
+	</select>
+	
+	<select id="findId" resultType="user">
+		select * from users where name=#{name} and phone=#{phone}
+	</select>
+	
+	<select id="findPassword" resultType="user">
+		select * from users where id=#{id} and name=#{name} and phone=#{phone}
+	</select>
+	
+	<update id="updatePassword">
+		update users set pwd=#{pwd} where id=#{id}
+	</update>
+	
+	<update id="updateUserInfo">
+		update users set pwd=#{pwd}, email=#{email}, zip_code=#{zip_code}, address=#{address}, phone=#{phone}
+		where id=#{id}
+	</update>
+	
+	<select id="getUserListPaging" parameterType="hashMap" resultType="user">
+		<![CDATA[
+			select rn, id, name, email, zip_code, address, phone, useyn, regdate
+    			from (select row_number() over (order by regdate desc) rn, id, name, email, zip_code, address, phone, useyn, regdate 
+            			from users
+            			where name like '%' || #{name} || '%')
+    		where rn > (#{criteria.pageNum} - 1) * #{criteria.numPerPage} and rn <= #{criteria.pageNum} * #{criteria.numPerPage}
+		]]>
+	</select>
+	
+	<select id="totalUserCount" resultType="int">
+		select count(*) from users
+	</select>
+</mapper>

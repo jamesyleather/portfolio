@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CartDAO">
+	<insert id="insertCart">
+		insert into cart(cartnum, id, prodnum, quantity)
+		values(cart_seq.nextval, #{id}, #{prodnum}, #{quantity})
+	</insert>
+	
+	<select id="getCartList" resultType="cart">
+		select * from cart_view where id=#{id}
+	</select>
+	
+	<delete id="deleteCartlist">
+		delete from cart where cartnum=#{cartnum}
+	</delete>
+	
+	<update id="updateCartResult">
+		update cart set result=2 where cartnum=#{cartnum}
+	</update>
+</mapper>

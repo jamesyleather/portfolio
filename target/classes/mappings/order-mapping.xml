@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="OrderDAO">
+	<select id="selectMaxOrdernum" resultType="int">
+		select NVL2(max(ordernum), max(ordernum) + 1, 1) from orders
+	</select>
+	
+	<insert id="insertOrder">
+		insert into orders(ordernum, id)
+		values(#{ordernum}, #{id})
+	</insert>
+	
+	<insert id="insertOrderDetail">
+		insert into order_detail(odnum, ordernum, prodnum, quantity)
+		values(order_detail_seq.nextval, #{ordernum}, #{prodnum}, #{quantity})
+	</insert>
+	
+	<select id="selectOrderListById" resultType="order">
+		select * from order_view
+		where id=#{id} and result like '%' || #{result} || '%' and ordernum=#{ordernum}
+	</select>
+	
+	<!-- 사용자별 주문번호 조회 -->
+	<select id="selectSeqOrdering" resultType="Integer">
+		select distinct ordernum
+		from order_view
+		where id=#{id} and result like '%' || #{result} || '%'
+		order by ordernum desc
+	</select>
+	
+	<select id="orderList" parameterType="String" resultType="order">
+		select * from order_view
+		where mname like '%' || #{mname} || '%'
+		order by
+		ordernum desc
+	</select>
+	
+	<select id="orderListPaging" parameterType="hashMap" resultType="order">
+		<![CDATA[
+			select rn, ordernum, id, indate, prodnum, quantity, mname, image, zip_code, address, phone, pname, price2, result, odnum         
+        from (select row_number() over (order by result) rn, ordernum, id, indate, prodnum, quantity, mname, image, zip_code, address, phone, pname, price2, result, odnum
+                from order_view
+                where mname like '%' || #{mname} || '%')
+        where rn > ((#{criteria.pageNum}-1) * #{criteria.numPerPage}) and rn <= #{criteria.pageNum} * #{criteria.numPerPage}
+        order by result, odnum desc
+		]]>
+	</select>
+	
+	<select id="countOrderList" parameterType="String" resultType="int">
+		select count(*) from order_view
+		where mname like '%' || #{mname} || '%'
+	</select>
+	
+	<update id="updateOrderResult" parameterType="int">
+		update order_detail set result='2'
+		where odnum = #{odnum}
+	</update>
+	
+	<select id="monthlyEarnings" parameterType="String" resultType="order">
+		select * from order_view where indate like '%' || #{month} || '%'
+	</select>
+	
+	<select id="annualEarnings" parameterType="String" resultType="order">
+		select * from order_view where indate like #{year} || '%'
+	</select>
+	
+	<select id="beforeOrderHanling" resultType="int">
+		select count(*) from order_detail where result = '1'
+	</select>
+</mapper>

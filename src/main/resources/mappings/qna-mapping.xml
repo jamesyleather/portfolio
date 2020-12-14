@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="QnaDAO">
+
+	<select id="getQnaList" resultType="qna">
+		select * from qna
+		order by
+		qnanum desc
+	</select>
+
+	<select id="getQnaListPaging" parameterType="hashMap" resultType="qna">
+		<![CDATA[
+		select rn, qnanum, subject, content, reply, id, rep, indate, kind
+    	from (select row_number() over (order by qnanum desc) rn, qnanum, subject, content, reply, id, rep, indate, kind
+            from qna)
+    	where rn > ((#{criteria.pageNum}-1)*#{criteria.numPerPage}) and rn <= #{criteria.pageNum} * #{criteria.numPerPage}
+    ]]>
+	</select>
+	
+	<select id="countTotalQna" resultType="int">
+		select count(*) from qna
+	</select>
+
+	<insert id="writeQna">
+		insert into qna(qnanum, subject, content, id, kind)
+		values(qna_seq.nextval, #{subject}, #{content}, #{id}, #{kind})
+	</insert>
+
+	<select id="getQna" resultType="qna">
+		select * from qna
+		where
+		qnanum=#{qnanum}
+	</select>
+
+	<update id="modifyQna">
+		update qna set subject=#{subject}, kind=#{kind},
+		content=#{content}
+		where qnanum=#{qnanum}
+	</update>
+
+	<update id="replyQna">
+		update qna set rep='2', reply=#{reply}
+		where
+		qnanum=#{qnanum}
+	</update>
+	
+	<select id="beforeQnaAnswer" resultType="int">
+		select count(*) from qna where rep='1'
+	</select>
+</mapper>
