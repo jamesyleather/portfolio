@@ -2,6 +2,7 @@
 <%@ include file="header.jsp"%>
 <html>
 <head>
+<!-- index page -->
 <title>Home</title>
 </head>
 <body>
